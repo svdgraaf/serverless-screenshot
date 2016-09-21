@@ -28,37 +28,37 @@ functions:
     timeout: 15
     events:
       - http:
-        path: screenshots
-        method: post
-        # Marking the function as private will require an api-key
-        private: true
+          path: screenshots
+          method: post
+          # Marking the function as private will require an api-key
+          private: true
 
-        # The url parameter is mandatory
-        request:
-          parameters:
-            # headers:
-            #   foo: false
-            #   bar: true
-            querystrings:
-              url: true
-            # paths:
-            #   bar: false
+          # The url parameter is mandatory
+          request:
+            parameters:
+              # headers:
+              #   foo: false
+              #   bar: true
+              querystrings:
+                url: true
+              # paths:
+              #   bar: false
 
   listScreenshots:
     handler: handler.list_screenshots
     timeout: 15
     events:
       - http:
-        path: screenshots
-        method: get
-        private: true
-        request:
-          parameters:
-            querystrings:
-              url: true
+          path: screenshots
+          method: get
+          private: true
+          request:
+            parameters:
+              querystrings:
+                url: true
 
-  thumbnail:
-    handler: handler.thumbnail
+  createThumbnails:
+    handler: handler.create_thumbnails
     events:
       - s3:
           bucket: ${self:provider.stage,opt:stage}-foobar-screenshots
