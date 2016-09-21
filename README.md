@@ -3,11 +3,15 @@ Serverless Screenshot Service
 
 This will setup a screenshot api which will take a screenshot from a given url, and push it into an S3 bucket. This is all done with Lambda calls. After the screenshot is created, another lambda function creates thumbnails from the given screenshot.
 
-# Installation
-Check the `serverless.yml` for the bucket name, and change it to whatever you want to call it.
-
+# Setup
 ```bash
 npm install
+```
+
+# Installation
+We use Serverless for setting up the service. Check the `serverless.yml` for the bucket name, and change it to whatever you want to call it. You can then deploy the stick with:
+
+```bash
 sls deploy -s dev
 # ...
 # endpoints:
@@ -15,7 +19,7 @@ sls deploy -s dev
 #   GET - https://123j6pi123.execute-api.us-east-1.amazonaws.com/dev/screenshots
 ```
 
-After this, you should have a cloudformation stack up and running. All endpoints are protected with an x-api-token key, which you should provide.
+After this, you should have a CloudFormation stack up and running. All endpoints are protected with an x-api-token key, which you should provide, and you can find it in the ApiGateway console.
 
 # Usage
 
@@ -27,7 +31,7 @@ curl -X POST "https://123j6pi123.execute-api.us-east-1.amazonaws.com/dev/screens
 ```
 
 ## List available screenshot sizes
-After creating a screenshot, you can see all the availabe sizes:
+After creating a screenshot, you can see all the available sizes with a GET:
 ```bash
 curl -X GET "https://123j6pi123.execute-api.us-east-1.amazonaws.com/dev/screenshots?url=http://google.com/" -H "x-api-key: [your-api-key]"
 {
