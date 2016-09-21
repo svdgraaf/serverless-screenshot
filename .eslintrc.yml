@@ -1,1 +1,5 @@
-extends: google
+extends: airbnb
+plugins:
+  - react
+rules:
+  no-console: off

@@ -9,6 +9,13 @@
   },
   "devDependencies": {
     "eslint": "^3.5.0",
-    "eslint-config-google": "^0.6.0"
+    "eslint-config-airbnb": "^11.1.0",
+    "eslint-config-google": "^0.6.0",
+    "eslint-plugin-import": "^1.15.0",
+    "eslint-plugin-jsx-a11y": "^2.2.2",
+    "eslint-plugin-react": "^6.3.0"
+  },
+  "scripts": {
+    "eslint": "./node_modules/eslint/bin/eslint.js handler.js"
   }
 }
