@@ -15,7 +15,7 @@ output = system.args[2];
 width = system.args[3];
 height = system.args[4];
 
-timeout = 1000;
+timeout = 3000;
 console.log("Args: ", system.args);
 console.log("Screenshotting: ", address, ", to: ", output);
 
