@@ -5,6 +5,11 @@ This will setup a screenshot api which will take a screenshot from a given url, 
 
 The screenshotting is done with PhantomJS (which is precompiled in this project), and the resizing is done with ImageMagick (which is available by default in Lambda).
 
+## Architecture
+![architecture](https://github.com/svdgraaf/serverless-screenshot/blob/master/docs/architecture.png?raw=true)
+
+The stack setsup 3 lambda functions, two (POST/GET) can be called via ApiGateway. The third is triggered whenever a file is uploaded into the S3 bucket. The user can request the screenshots through CloudFront.
+
 # Setup
 Just install all requirements with npm:
 
