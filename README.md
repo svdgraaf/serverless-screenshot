@@ -3,13 +3,17 @@ Serverless Screenshot Service
 
 This will setup a screenshot api which will take a screenshot from a given url, and push it into an S3 bucket. This is all done with Lambda calls. After the screenshot is created, another lambda function creates thumbnails from the given screenshot.
 
+The screenshotting is done with PhantomJS (which is precompiled in this project), and the resizing is done with ImageMagick (which is available by default in Lambda).
+
 # Setup
+Just install all requirements with npm:
+
 ```bash
 npm install
 ```
 
 # Installation
-We use Serverless for setting up the service. Check the `serverless.yml` for the bucket name, and change it to whatever you want to call it. You can then deploy the stick with:
+This project uses Serverless for setting up the service. Check the `serverless.yml` for the bucket name, and change it to whatever you want to call it. You can then deploy the stack with:
 
 ```bash
 sls deploy -s dev
@@ -49,3 +53,8 @@ curl -X GET "https://123j6pi123.execute-api.us-east-1.amazonaws.com/dev/screensh
 	"original": "https://s3.amazonaws.com/dev-123456-screenshots/6ab016b2dad7ba49a992ba0213a91cf8/original.png"
 }
 ```
+
+# Caveats
+* This service uses the awesome PhantomJS service to capture the screenshots, which is compiled on the Lambda service. There probably will be issues with fonts of some sorts.
+* The default timeout for PhantomJS is set to 3 seconds, if the page takes longer to load, this will result in b0rked screenshots (ofcourse). You can change the timeout in handler.js (a PR with custom timeout is greatly appreciated)
+* Currently, when the thumbnailer fails, it will fail silently, and will result in missing thumbnails. Could be anything really, memory, timeout, etc. PR's to fix this are welcome :) Easiest fix: just setup the Lambda function to allow for more memory usage.
