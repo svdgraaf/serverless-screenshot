@@ -1,0 +1,58 @@
+service: lambda-screenshots
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  stage: dev
+
+  # We need to lockdown the apigateway, so we can control who can use the api
+  apiKeys:
+    - app-api-key
+
+  # We need to give the lambda functions access to list and write to our bucket, it needs:
+  # - to be able to 'list' the bucket
+  # - to be able to upload a file (PutObject)
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+        - "s3:Put*"
+        - "s3:GetObject"
+      Resource:
+        - "arn:aws:s3:::${self:provider.stage,opt:stage}-foobar-screenshots"
+        - "arn:aws:s3:::${self:provider.stage,opt:stage}-foobar-screenshots/*"
+
+functions:
+  screenshot:
+    handler: handler.screenshot
+    timeout: 15
+    events:
+      - http:
+          path: screenshot
+          method: post
+          # Marking the function as private will require an api-key
+          private: true
+
+          # The url parameter is mandatory
+          request:
+            parameters:
+              # headers:
+              #   foo: false
+              #   bar: true
+              querystrings:
+                url: true
+              # paths:
+              #   bar: false
+  thumbnail:
+    handler: handler.thumbnail
+    events:
+      - s3:
+          bucket: ${self:provider.stage,opt:stage}-foobar-screenshots
+          event: s3:ObjectCreated:*
+
+custom:
+  writeEnvVars:
+    BUCKET_NAME: ${self:provider.stage,opt:stage}-foobar-screenshots
+
+plugins:
+   - serverless-plugin-write-env-vars
