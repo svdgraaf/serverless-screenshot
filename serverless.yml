@@ -1,5 +1,13 @@
 service: lambda-screenshots
 
+custom:
+  # change this, so it's unique for your setup
+  bucket_name: ${self:provider.stage,opt:stage}-${env:USER}-screenshots
+
+  stageVariables:
+    bucketName: ${self:custom.bucket_name}
+    endpoint: { "Fn::GetAtt": "CloudFrontEndpoint.DomainName" }
+
 provider:
   name: aws
   runtime: nodejs4.3
@@ -19,8 +27,8 @@ provider:
         - "s3:Put*"
         - "s3:GetObject"
       Resource:
-        - "arn:aws:s3:::${self:provider.stage,opt:stage}-foobar-screenshots"
-        - "arn:aws:s3:::${self:provider.stage,opt:stage}-foobar-screenshots/*"
+        - "arn:aws:s3:::${self:custom.bucket_name}"
+        - "arn:aws:s3:::${self:custom.bucket_name}/*"
 
 functions:
   takeScreenshot:
@@ -61,12 +69,36 @@ functions:
     handler: handler.create_thumbnails
     events:
       - s3:
-          bucket: ${self:provider.stage,opt:stage}-foobar-screenshots
+          bucket: ${self:custom.bucket_name}
           event: s3:ObjectCreated:*
 
-custom:
-  writeEnvVars:
-    BUCKET_NAME: ${self:provider.stage,opt:stage}-foobar-screenshots
+resources:
+  Outputs:
+    ScreenshotBucket:
+      Description: "Screenshot bucket name"
+      Value: ${self:custom.bucket_name}
+    CloudFrontUrl:
+      Description: "CloudFront url"
+      Value: {"Fn::GetAtt": "CloudFrontEndpoint.DomainName"}
+  Resources:
+    # Create an endpoint for the S3 bucket in CloudFront
+    CloudFrontEndpoint:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Enabled: True
+          DefaultCacheBehavior:
+            TargetOriginId: ScreenshotBucketOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            ForwardedValues:
+              QueryString: True
+          Origins:
+            -
+              Id: ScreenshotBucketOrigin
+              DomainName: ${self:custom.bucket_name}.s3.amazonaws.com
+              CustomOriginConfig:
+                OriginProtocolPolicy: http-only
+
 
 plugins:
-   - serverless-plugin-write-env-vars
+  - serverless-plugin-stage-variables

@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const exec = require('child_process').exec;
 const crypto = require('crypto');
 const fs = require('fs');
@@ -21,7 +19,7 @@ module.exports.take_screenshot = (event, context, cb) => {
     return false;
   }
 
-  const targetBucket = process.env.BUCKET_NAME;
+  const targetBucket = event.stageVariables.bucketName;
   const targetHash = crypto.createHash('md5').update(targetUrl).digest('hex');
   const targetFilename = `${targetHash}/original.png`;
   console.log(`Snapshotting ${targetUrl} to s3://${targetBucket}/${targetFilename}`);
@@ -61,7 +59,7 @@ module.exports.take_screenshot = (event, context, cb) => {
             hash: targetHash,
             key: `${targetFilename}`,
             bucket: targetBucket,
-            url: `https://s3.amazonaws.com/${targetBucket}/${targetFilename}`,
+            url: `https://${targetBucket}.s3.amazonaws.com/${targetFilename}`,
           });
         }
         return true;
@@ -84,7 +82,7 @@ module.exports.list_screenshots = (event, context, cb) => {
   }
 
   const targetHash = crypto.createHash('md5').update(targetUrl).digest('hex');
-  const targetBucket = process.env.BUCKET_NAME;
+  const targetBucket = event.stageVariables.bucketName;
   const targetPath = `${targetHash}/`;
 
   const s3 = new AWS.S3();
@@ -101,7 +99,7 @@ module.exports.list_screenshots = (event, context, cb) => {
       data.Contents.forEach((content) => {
         const parts = content.Key.split('/');
         const size = parts.pop().split('.')[0];
-        urls[size] = `https://s3.amazonaws.com/${targetBucket}/${content.Key}`;
+        urls[size] = `https://${targetBucket}.s3.amazonaws.com/${content.Key}`;
       });
       cb(null, urls);
     }
