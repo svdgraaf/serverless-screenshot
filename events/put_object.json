@@ -11,7 +11,7 @@
         "object": {
           "eTag": "0123456789abcdef0123456789abcdef",
           "sequencer": "0A1B2C3D4E5F678901",
-          "key": "110eba5f8772213e2ba4d89029e68c06/www.nu.nl/original-110eba5f8772213e2ba4d89029e68c06.png",
+          "key": "110eba5f8772213e2ba4d89029e68c06/original.png",
           "size": 1234
         },
         "bucket": {
