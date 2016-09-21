@@ -29,7 +29,7 @@ curl -X POST "https://123j6pi123.execute-api.us-east-1.amazonaws.com/dev/screens
 ## List available screenshot sizes
 After creating a screenshot, you can see all the availabe sizes:
 ```bash
-curl -X GET "https://5l8j6pizg8.execute-api.us-east-1.amazonaws.com/dev/screenshots?url=http://google.com/" -H "x-api-key: zlqti7KSFa71L8xFiG4GF1XP2U2awvlP2NdSGTpt"
+curl -X GET "https://123j6pi123.execute-api.us-east-1.amazonaws.com/dev/screenshots?url=http://google.com/" -H "x-api-key: [your-api-key]"
 {
 	"100": "https://s3.amazonaws.com/dev-123456-screenshots/6ab016b2dad7ba49a992ba0213a91cf8/100.png",
 	"200": "https://s3.amazonaws.com/dev-123456-screenshots/6ab016b2dad7ba49a992ba0213a91cf8/200.png",
