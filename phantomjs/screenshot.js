@@ -3,8 +3,8 @@ var page = require('webpage').create(),
     url, output, width, height;
 
 page.onResourceReceived = function(response) {
-    // console.log(JSON.stringify(response, undefined, 4));
-    if(response.id == 1 && response.status != 200){
+    valid = [200, 201, 301, 302]
+    if(response.id == 1 && valid.indexOf(response.status) == -1 ){
         console.log('Received a non-200 OK response, got: ', response.status);
         phantom.exit(1);
     }
@@ -14,8 +14,8 @@ address = system.args[1];
 output = system.args[2];
 width = system.args[3];
 height = system.args[4];
+timeout = system.args[5];
 
-timeout = 3000;
 console.log("Args: ", system.args);
 console.log("Screenshotting: ", address, ", to: ", output);
 
