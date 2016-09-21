@@ -23,12 +23,12 @@ module.exports.take_screenshot = (event, context, cb) => {
   const target_bucket = process.env.BUCKET_NAME;
   const target_hash = crypto.createHash('md5').update(target_url).digest("hex");
   const target_filename = `${target_hash}/${target_hostname}/original-${target_hash}.png`
-  const width = 1280;
-  const width = 1024;
+  const screen_width = 1280;
+  const screen_height = 1024;
   console.log(`Snapshotting ${target_url} to s3://${target_bucket}/${target_filename}`);
 
   // build the cmd for phantom to render the url
-  const cmd =`./phantomjs/phantomjs_linux-x86_64 --debug=yes --ignore-ssl-errors=true ./phantomjs/screenshot.js ${target_url} /tmp/${target_hash}.png ${width} ${height}`;
+  const cmd =`./phantomjs/phantomjs_linux-x86_64 --debug=yes --ignore-ssl-errors=true ./phantomjs/screenshot.js ${target_url} /tmp/${target_hash}.png ${screen_width} ${screen_height}`;
   // const cmd =`./phantomjs/phantomjs_osx --debug=yes --ignore-ssl-errors=true ./phantomjs/screenshot.js ${target_url} /tmp/${target_hash}.png 1280 1024`;
   console.log(cmd);
 
@@ -97,7 +97,7 @@ module.exports.list_screenshots = (event, context, cb) => {
         var size = parts[parts.length - 1].split('-')[0]
         urls[size] = `https://s3.amazonaws.com/${target_bucket}/${content.Key}`
       })
-      console.log(urls);
+      cb(null, urls);
     }
   })
 
