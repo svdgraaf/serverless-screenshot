@@ -8,4 +8,5 @@ var callback = function(data) {
   console.log('got data: '+data);
 };
 
-handler.screenshot(input, null, callback);
+// handler.take_screenshot(input, null, callback);
+handler.list_screenshots(input, null, callback);

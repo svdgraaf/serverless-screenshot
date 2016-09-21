@@ -23,26 +23,40 @@ provider:
         - "arn:aws:s3:::${self:provider.stage,opt:stage}-foobar-screenshots/*"
 
 functions:
-  screenshot:
-    handler: handler.screenshot
+  takeScreenshot:
+    handler: handler.take_screenshot
     timeout: 15
     events:
       - http:
-          path: screenshot
-          method: post
-          # Marking the function as private will require an api-key
-          private: true
+        path: screenshots
+        method: post
+        # Marking the function as private will require an api-key
+        private: true
 
-          # The url parameter is mandatory
-          request:
-            parameters:
-              # headers:
-              #   foo: false
-              #   bar: true
-              querystrings:
-                url: true
-              # paths:
-              #   bar: false
+        # The url parameter is mandatory
+        request:
+          parameters:
+            # headers:
+            #   foo: false
+            #   bar: true
+            querystrings:
+              url: true
+            # paths:
+            #   bar: false
+
+  listScreenshots:
+    handler: handler.list_screenshots
+    timeout: 15
+    events:
+      - http:
+        path: screenshots
+        method: get
+        private: true
+        request:
+          parameters:
+            querystrings:
+              url: true
+
   thumbnail:
     handler: handler.thumbnail
     events:
