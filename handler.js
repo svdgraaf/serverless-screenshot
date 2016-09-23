@@ -7,11 +7,11 @@ const validUrl = require('valid-url');
 // overall constants
 const screenWidth = 1280;
 const screenHeight = 1024;
-const timeout = 3000;
 
 // screenshot the given url
 module.exports.take_screenshot = (event, context, cb) => {
   const targetUrl = event.query.url;
+  const timeout = event.stageVariables.screenshotTimeout;
 
   // check if the given url is valid
   if (!validUrl.isUri(targetUrl)) {
@@ -26,7 +26,7 @@ module.exports.take_screenshot = (event, context, cb) => {
 
   // build the cmd for phantom to render the url
   const cmd = `./phantomjs/phantomjs_linux-x86_64 --debug=yes --ignore-ssl-errors=true ./phantomjs/screenshot.js ${targetUrl} /tmp/${targetHash}.png ${screenWidth} ${screenHeight} ${timeout}`; // eslint-disable-line max-len
-  // const cmd =`./phantomjs/phantomjs_osx          --debug=yes --ignore-ssl-errors=true ./phantomjs/screenshot.js ${targetUrl} /tmp/${targetHash}.png ${screenWidth} ${screenHeight} ${timeout}`; // eslint-disable-line max-len
+  // const cmd =`./phantomjs/phantomjs_osx          --debug=yes --ignore-ssl-errors=true ./phantomjs/screenshot.js ${targetUrl} /tmp/${targetHash}.png ${screenWidth} ${screenHeight} ${timeout}`;
   console.log(cmd);
 
   // run the phantomjs command
@@ -59,15 +59,13 @@ module.exports.take_screenshot = (event, context, cb) => {
             hash: targetHash,
             key: `${targetFilename}`,
             bucket: targetBucket,
-            url: `https://${targetBucket}.s3.amazonaws.com/${targetFilename}`,
+            url: `https://s3.amazonaws.com/${targetBucket}/${targetFilename}`,
           });
         }
-        return true;
+        return;
       });
     }
   });
-
-  return true;
 };
 
 
@@ -99,7 +97,7 @@ module.exports.list_screenshots = (event, context, cb) => {
       data.Contents.forEach((content) => {
         const parts = content.Key.split('/');
         const size = parts.pop().split('.')[0];
-        urls[size] = `https://${targetBucket}.s3.amazonaws.com/${content.Key}`;
+        urls[size] = `https://s3.amazonaws.com/${targetBucket}/${content.Key}`;
       });
       cb(null, urls);
     }
@@ -108,6 +106,7 @@ module.exports.list_screenshots = (event, context, cb) => {
 };
 
 module.exports.create_thumbnails = (event, context, cb) => {
+  // define all the thumbnails that we want
   const widths = {
     '320x240': `-crop ${screenWidth}x${screenHeight}+0x0 -thumbnail 320x240`,
     '640x480': `-crop ${screenWidth}x${screenHeight}+0x0 -thumbnail 640x480`,
@@ -154,26 +153,27 @@ module.exports.create_thumbnails = (event, context, cb) => {
       exec(cmd, (error, stdout, stderr) => {
         if (error) {
           // the command failed (non-zero), fail
-          console.warn(`exec error: ${error}`, stdout, stderr);
+          console.warn(`exec error: ${error}, stdout, stderr`);
+          // continue
         } else {
           // resize was succesfull, upload the file
           console.info(`Resize to ${size} OK`);
-          const fileBuffer = fs.readFileSync(`/tmp/${hash}-${size}.png`);
+          var fileBuffer = fs.readFileSync(`/tmp/${hash}-${size}.png`);
           s3.putObject({
-            ACL: 'public-read',
-            Key: `${prefix}/${size}.png`,
-            Body: fileBuffer,
-            Bucket: record.s3.bucket.name,
-            ContentType: 'image/png',
-          }, (err) => {
-            if (err) {
+              ACL: 'public-read',
+              Key: `${prefix}/${size}.png`,
+              Body: fileBuffer,
+              Bucket: record.s3.bucket.name,
+              ContentType: 'image/png'
+          }, function(err, data){
+            if(err) {
               console.warn(err);
             } else {
-              console.info(`${size} uploaded`);
+              console.info(`${size} uploaded`)
             }
           });
         }
-      });
+      })
     });
   });
 };

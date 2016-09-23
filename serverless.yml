@@ -6,7 +6,9 @@ custom:
 
   stageVariables:
     bucketName: ${self:custom.bucket_name}
-    endpoint: { "Fn::GetAtt": "CloudFrontEndpoint.DomainName" }
+    endpoint: {"Fn::Join": ["", ["https://", { "Fn::GetAtt": "CloudFrontEndpoint.DomainName" }, "/"]]}
+    # timeout for phantomjs
+    screenshotTimeout: 3000
 
 provider:
   name: aws
