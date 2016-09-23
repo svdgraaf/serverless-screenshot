@@ -5,7 +5,7 @@
     "aws-sdk": "^2.6.4",
     "dotenv": "^2.0.0",
     "serverless": "^1.0.0-rc.1",
-    "serverless-plugin-stage-variables": "^1.0.2",
+    "serverless-plugin-stage-variables": "^1.4.5",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
@@ -18,5 +18,9 @@
   },
   "scripts": {
     "eslint": "./node_modules/eslint/bin/eslint.js handler.js"
+  },
+  "license": "MIT",
+  "repository": {
+    "git":"https://github.com/svdgraaf/serverless-screenshot"
   }
 }
