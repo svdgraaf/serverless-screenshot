@@ -1,0 +1,433 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Serverless Screenshot Service
+Parameters:
+  ScreenshotBucketName:
+    AllowedPattern: "[A-Za-z0-9-]+"
+    Type: String
+    Description: Name of the bucket where the screenshots will be stored, this must
+      be unique
+Resources:
+  IamRoleLambdaExecution:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+  IamPolicyLambdaExecution:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: lambda-screenshots-lambda
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: arn:aws:logs:us-east-1:*:*
+        - Effect: Allow
+          Action:
+          - s3:ListBucket
+          - s3:Put*
+          - s3:GetObject
+          Resource:
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: ScreenshotBucketName
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: ScreenshotBucketName
+              - "/*"
+      Roles:
+      - Ref: IamRoleLambdaExecution
+  TakeScreenshotLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: serverless-screenshots-service
+        S3Key: 2016-09-23T12:50:03/lambda-screenshots.zip
+      FunctionName: lambda-screenshots-takeScreenshot
+      Handler: handler.take_screenshot
+      MemorySize: 1024
+      Role:
+        Fn::GetAtt:
+        - IamRoleLambdaExecution
+        - Arn
+      Runtime: nodejs4.3
+      Timeout: 15
+  ListScreenshotsLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: serverless-screenshots-service
+        S3Key: 2016-09-23T12:50:03/lambda-screenshots.zip
+      FunctionName: lambda-screenshots-listScreenshots
+      Handler: handler.list_screenshots
+      MemorySize: 1024
+      Role:
+        Fn::GetAtt:
+        - IamRoleLambdaExecution
+        - Arn
+      Runtime: nodejs4.3
+      Timeout: 15
+  CreateThumbnailsLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: serverless-screenshots-service
+        S3Key: 2016-09-23T12:50:03/lambda-screenshots.zip
+      FunctionName: lambda-screenshots-createThumbnails
+      Handler: handler.create_thumbnails
+      MemorySize: 1024
+      Role:
+        Fn::GetAtt:
+        - IamRoleLambdaExecution
+        - Arn
+      Runtime: nodejs4.3
+      Timeout: 6
+  S3BucketScreenshots:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: ScreenshotBucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+        - Event: s3:ObjectCreated:*
+          Function:
+            Fn::GetAtt:
+            - CreateThumbnailsLambdaFunction
+            - Arn
+  CreateThumbnailsLambdaPermissionS3:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+        - CreateThumbnailsLambdaFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: lambda-screenshots
+  ApiGatewayResourceScreenshots:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - ApiGatewayRestApi
+        - RootResourceId
+      PathPart: screenshots
+      RestApiId:
+        Ref: ApiGatewayRestApi
+  ApiGatewayMethodScreenshotsPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      MethodResponses:
+      - ResponseModels: {}
+        ResponseParameters: {}
+        StatusCode: 200
+      - StatusCode: 400
+      - StatusCode: 401
+      - StatusCode: 403
+      - StatusCode: 404
+      - StatusCode: 422
+      - StatusCode: 500
+      - StatusCode: 502
+      - StatusCode: 504
+      RequestParameters:
+        method.request.querystring.url: true
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - ":lambda:path/2015-03-31/functions/"
+            - Fn::GetAtt:
+              - TakeScreenshotLambdaFunction
+              - Arn
+            - "/invocations"
+        RequestTemplates:
+          application/json: "\n            #define( $loop )\n              {\n              #foreach($key
+            in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n
+            \                   \"$util.escapeJavaScript($map.get($key))\"\n                    #if(
+            $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n
+            \           {\n              \"body\": $input.json(\"$\"),\n              \"method\":
+            \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n
+            \             \"stage\": \"$context.stage\",\n\n              #set( $map
+            = $input.params().header )\n              \"headers\": $loop,\n\n              #set(
+            $map = $input.params().querystring )\n              \"query\": $loop,\n\n
+            \             #set( $map = $input.params().path )\n              \"path\":
+            $loop,\n\n              #set( $map = $context.identity )\n              \"identity\":
+            $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\":
+            $loop\n            }\n          "
+          application/x-www-form-urlencoded: "\n            #define( $body )\n              {\n
+            \             #foreach( $token in $input.path('$').split('&') )\n                #set(
+            $keyVal = $token.split('=') )\n                #set( $keyValSize = $keyVal.size()
+            )\n                #if( $keyValSize >= 1 )\n                  #set( $key
+            = $util.urlDecode($keyVal[0]) )\n                  #if( $keyValSize >=
+            2 )\n                    #set( $val = $util.urlDecode($keyVal[1]) )\n
+            \                 #else\n                    #set( $val = '' )\n                  #end\n
+            \                 \"$key\": \"$val\"#if($foreach.hasNext),#end\n                #end\n
+            \             #end\n              }\n            #end\n\n            #define(
+            $loop )\n              {\n              #foreach($key in $map.keySet())\n
+            \                 \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n
+            \                   #if( $foreach.hasNext ) , #end\n              #end\n
+            \             }\n            #end\n\n            {\n              \"body\":
+            $body,\n              \"method\": \"$context.httpMethod\",\n              \"principalId\":
+            \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n
+            \             #set( $map = $input.params().header )\n              \"headers\":
+            $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\":
+            $loop,\n\n              #set( $map = $input.params().path )\n              \"path\":
+            $loop,\n\n              #set( $map = $context.identity )\n              \"identity\":
+            $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\":
+            $loop\n            }\n          "
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters: {}
+          ResponseTemplates: {}
+        - StatusCode: 400
+          SelectionPattern: ".*\\[400\\].*"
+        - StatusCode: 401
+          SelectionPattern: ".*\\[401\\].*"
+        - StatusCode: 403
+          SelectionPattern: ".*\\[403\\].*"
+        - StatusCode: 404
+          SelectionPattern: ".*\\[404\\].*"
+        - StatusCode: 422
+          SelectionPattern: ".*\\[422\\].*"
+        - StatusCode: 500
+          SelectionPattern: ".*(Process\\s?exited\\s?before\\s?completing\\s?request|\\[500\\]).*"
+        - StatusCode: 502
+          SelectionPattern: ".*\\[502\\].*"
+        - StatusCode: 504
+          SelectionPattern: ".*\\[504\\].*"
+      ResourceId:
+        Ref: ApiGatewayResourceScreenshots
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ApiKeyRequired: true
+  ApiGatewayMethodScreenshotsGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      MethodResponses:
+      - ResponseModels: {}
+        ResponseParameters: {}
+        StatusCode: 200
+      - StatusCode: 400
+      - StatusCode: 401
+      - StatusCode: 403
+      - StatusCode: 404
+      - StatusCode: 422
+      - StatusCode: 500
+      - StatusCode: 502
+      - StatusCode: 504
+      RequestParameters:
+        method.request.querystring.url: true
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - ":lambda:path/2015-03-31/functions/"
+            - Fn::GetAtt:
+              - ListScreenshotsLambdaFunction
+              - Arn
+            - "/invocations"
+        RequestTemplates:
+          application/json: "\n            #define( $loop )\n              {\n              #foreach($key
+            in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n
+            \                   \"$util.escapeJavaScript($map.get($key))\"\n                    #if(
+            $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n
+            \           {\n              \"body\": $input.json(\"$\"),\n              \"method\":
+            \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n
+            \             \"stage\": \"$context.stage\",\n\n              #set( $map
+            = $input.params().header )\n              \"headers\": $loop,\n\n              #set(
+            $map = $input.params().querystring )\n              \"query\": $loop,\n\n
+            \             #set( $map = $input.params().path )\n              \"path\":
+            $loop,\n\n              #set( $map = $context.identity )\n              \"identity\":
+            $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\":
+            $loop\n            }\n          "
+          application/x-www-form-urlencoded: "\n            #define( $body )\n              {\n
+            \             #foreach( $token in $input.path('$').split('&') )\n                #set(
+            $keyVal = $token.split('=') )\n                #set( $keyValSize = $keyVal.size()
+            )\n                #if( $keyValSize >= 1 )\n                  #set( $key
+            = $util.urlDecode($keyVal[0]) )\n                  #if( $keyValSize >=
+            2 )\n                    #set( $val = $util.urlDecode($keyVal[1]) )\n
+            \                 #else\n                    #set( $val = '' )\n                  #end\n
+            \                 \"$key\": \"$val\"#if($foreach.hasNext),#end\n                #end\n
+            \             #end\n              }\n            #end\n\n            #define(
+            $loop )\n              {\n              #foreach($key in $map.keySet())\n
+            \                 \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n
+            \                   #if( $foreach.hasNext ) , #end\n              #end\n
+            \             }\n            #end\n\n            {\n              \"body\":
+            $body,\n              \"method\": \"$context.httpMethod\",\n              \"principalId\":
+            \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n
+            \             #set( $map = $input.params().header )\n              \"headers\":
+            $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\":
+            $loop,\n\n              #set( $map = $input.params().path )\n              \"path\":
+            $loop,\n\n              #set( $map = $context.identity )\n              \"identity\":
+            $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\":
+            $loop\n            }\n          "
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters: {}
+          ResponseTemplates: {}
+        - StatusCode: 400
+          SelectionPattern: ".*\\[400\\].*"
+        - StatusCode: 401
+          SelectionPattern: ".*\\[401\\].*"
+        - StatusCode: 403
+          SelectionPattern: ".*\\[403\\].*"
+        - StatusCode: 404
+          SelectionPattern: ".*\\[404\\].*"
+        - StatusCode: 422
+          SelectionPattern: ".*\\[422\\].*"
+        - StatusCode: 500
+          SelectionPattern: ".*(Process\\s?exited\\s?before\\s?completing\\s?request|\\[500\\]).*"
+        - StatusCode: 502
+          SelectionPattern: ".*\\[502\\].*"
+        - StatusCode: 504
+          SelectionPattern: ".*\\[504\\].*"
+      ResourceId:
+        Ref: ApiGatewayResourceScreenshots
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ApiKeyRequired: true
+  ApiGatewayDeployment1474632585433:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      StageName: devna
+    DependsOn:
+    - ApiGatewayMethodScreenshotsPost
+    - ApiGatewayMethodScreenshotsGet
+  ApiGatewayApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Enabled: true
+      Name: app-api-key
+      StageKeys:
+      - RestApiId:
+          Ref: ApiGatewayRestApi
+        StageName: dev
+    DependsOn: ApiGatewayStage
+  TakeScreenshotLambdaPermissionApiGateway:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+        - TakeScreenshotLambdaFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+  ListScreenshotsLambdaPermissionApiGateway:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+        - ListScreenshotsLambdaFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+  CloudFrontEndpoint:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: ScreenshotBucketOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: true
+        Origins:
+        - Id: ScreenshotBucketOrigin
+          DomainName:
+            Fn::Join:
+            - ''
+            - - Ref: ScreenshotBucketName
+              - ".s3.amazonaws.com"
+          CustomOriginConfig:
+            OriginProtocolPolicy: http-only
+  ApiGatewayStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: dev
+      Description: dev
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      DeploymentId:
+        Ref: ApiGatewayDeployment1474632585433
+      Variables:
+        bucketName:
+          Ref: ScreenshotBucketName
+        endpoint:
+          Fn::Join:
+          - ''
+          - - https://
+            - Fn::GetAtt: CloudFrontEndpoint.DomainName
+            - "/"
+        screenshotTimeout: 3000
+Outputs:
+  TakeScreenshotLambdaFunctionArn:
+    Description: Lambda function info
+    Value:
+      Fn::GetAtt:
+      - TakeScreenshotLambdaFunction
+      - Arn
+  ListScreenshotsLambdaFunctionArn:
+    Description: Lambda function info
+    Value:
+      Fn::GetAtt:
+      - ListScreenshotsLambdaFunction
+      - Arn
+  CreateThumbnailsLambdaFunctionArn:
+    Description: Lambda function info
+    Value:
+      Fn::GetAtt:
+      - CreateThumbnailsLambdaFunction
+      - Arn
+  ServiceEndpoint:
+    Description: URL of the service endpoint
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Ref: ApiGatewayRestApi
+        - ".execute-api.us-east-1.amazonaws.com/dev"
+  ScreenshotBucket:
+    Description: Screenshot bucket name
+    Value:
+      Ref: ScreenshotBucketName
+  CloudFrontUrl:
+    Description: CloudFront url
+    Value:
+      Fn::GetAtt: CloudFrontEndpoint.DomainName
+  ApiKey:
+    Description: ApiGateway api key
+    Value:
+      Ref: ApiGatewayApiKey1
