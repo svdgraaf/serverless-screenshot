@@ -59,7 +59,7 @@ module.exports.take_screenshot = (event, context, cb) => {
             hash: targetHash,
             key: `${targetFilename}`,
             bucket: targetBucket,
-            url: `https://${event.stageVariables.endpoint}/${targetBucket}/${targetFilename}`,
+            url: `${event.stageVariables.endpoint}${targetFilename}`,
           });
         }
         return;
@@ -97,7 +97,7 @@ module.exports.list_screenshots = (event, context, cb) => {
       data.Contents.forEach((content) => {
         const parts = content.Key.split('/');
         const size = parts.pop().split('.')[0];
-        urls[size] = `https://${event.stageVariables.endpoint}/${targetBucket}/${content.Key}`;
+        urls[size] = `${event.stageVariables.endpoint}${content.Key}`;
       });
       cb(null, urls);
     }
