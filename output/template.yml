@@ -427,7 +427,3 @@ Outputs:
     Description: CloudFront url
     Value:
       Fn::GetAtt: CloudFrontEndpoint.DomainName
-  ApiKey:
-    Description: ApiGateway api key
-    Value:
-      Ref: ApiGatewayApiKey1
