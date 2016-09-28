@@ -23,15 +23,24 @@ page.viewportSize = { width: parseInt(width), height: parseInt(height) };
 console.log("Viewport: ", JSON.stringify(page.viewportSize));
 
 page.open(address, function (status) {
-    if (status !== 'success') {
-        console.log('Unable to load the address!');
-        phantom.exit();
-    } else {
-        window.setTimeout(function () {
-            page.render(output);
-            phantom.exit();
-        }, timeout);
-    }
+  if (status !== 'success') {
+    console.log('Unable to load the address!');
+    phantom.exit();
+  } else {
+    // Scroll to bottom of page, so all resources are triggered for downloading
+    window.setInterval(function() {
+      page.evaluate(function() {
+        console.log('scrolling', window.document.body.scrollTop);
+        window.document.body.scrollTop = window.document.body.scrollTop + 1024;
+      });
+    }, 250);
+
+    // after the timeout, save the screenbuffer to file
+    window.setTimeout(function() {
+      page.render(output);
+      phantom.exit();
+    }, timeout);
+  }
 });
 //
 // var page = require('webpage').create();
