@@ -2,7 +2,7 @@ service: lambda-screenshots
 
 custom:
   # change this, so it's unique for your setup
-  bucket_name: ${self:provider.stage,opt:stage}-${env:USER}-screenshots
+  bucket_name: ${opt:stage,self:provider.stage}-${env:USER}-screenshots
 
   stageVariables:
     bucketName: ${self:custom.bucket_name}
