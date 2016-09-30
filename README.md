@@ -11,6 +11,12 @@ If you just want to launch the service yourself, you can use this magic button w
 
 [![Launch Awesomeness](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=serverless-screenshot-service&templateURL=https://s3-eu-west-1.amazonaws.com/serverless-screenshots-service/2016-09-23T12%3A50%3A03/template.yml)
 
+# Examples
+[![https://www.youtube.com/](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/youtube-320x240.png)](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/youtube.png){: .img-responsive .col-md-3 .img-thumbnail }
+[![http://www.apple.com/](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/apple-320x240.png)](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/apple.png){: .img-responsive .col-md-3 .img-thumbnail }
+[![https://www.reddit.com/](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/reddit-320x240.png)](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/reddit.png){: .img-responsive .col-md-3 .img-thumbnail }
+[![http://www.bbc.com/](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/bbc-320x240.png)](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/bbc.png){: .img-responsive .col-md-3 .img-thumbnail }
+
 ## Architecture
 ![architecture](https://github.com/svdgraaf/serverless-screenshot/blob/master/docs/architecture.png?raw=true)
 
