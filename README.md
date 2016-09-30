@@ -12,6 +12,8 @@ If you just want to launch the service yourself, you can use this magic button w
 [![Launch Awesomeness](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=serverless-screenshot-service&templateURL=https://s3-eu-west-1.amazonaws.com/serverless-screenshots-service/2016-09-23T12%3A50%3A03/template.yml)
 
 # Examples
+The Service will generate full screenshots for you (full page length), and create thumbnails from that original, both cropped (eg: 320x240), as well as resized thumbnails (eg: 200px wide).
+
 [![https://www.youtube.com/](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/youtube-320x240.png)](https://github.com/svdgraaf/serverless-screenshot/blob/master/docs/youtube.png)
 [![http://www.apple.com/](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/apple-320x240.png)](https://github.com/svdgraaf/serverless-screenshot/blob/master/docs/apple.png)
 [![https://www.reddit.com/](https://github.com/svdgraaf/serverless-screenshot/raw/master/docs/reddit-320x240.png)](https://github.com/svdgraaf/serverless-screenshot/blob/master/docs/reddit.png)
