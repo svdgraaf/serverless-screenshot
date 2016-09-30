@@ -5,6 +5,12 @@ This will setup a screenshot api which will take a screenshot from a given url, 
 
 The screenshotting is done with PhantomJS (which is precompiled in this project), and the resizing is done with ImageMagick (which is available by default in Lambda).
 
+Quick installation 🚀
+====================
+If you just want to launch the service yourself, you can use this magic button which will setup everything for you in your AWS account through the magic of CloudFormation:
+
+[![Launch Awesomeness](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=serverless-screenshot-service&templateURL=https://s3-eu-west-1.amazonaws.com/serverless-screenshots-service/2016-09-23T12%3A50%3A03/template.yml)
+
 ## Architecture
 ![architecture](https://github.com/svdgraaf/serverless-screenshot/blob/master/docs/architecture.png?raw=true)
 
