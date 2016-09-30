@@ -95,7 +95,7 @@ Resources:
         - IamRoleLambdaExecution
         - Arn
       Runtime: nodejs4.3
-      Timeout: 6
+      Timeout: 59
   S3BucketScreenshots:
     Type: AWS::S3::Bucket
     Properties:
