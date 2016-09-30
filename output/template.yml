@@ -89,7 +89,7 @@ Resources:
         S3Key: 2016-09-23T12:50:03/lambda-screenshots.zip
       FunctionName: lambda-screenshots-createThumbnails
       Handler: handler.create_thumbnails
-      MemorySize: 1024
+      MemorySize: 1500
       Role:
         Fn::GetAtt:
         - IamRoleLambdaExecution
