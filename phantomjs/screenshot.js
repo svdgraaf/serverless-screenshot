@@ -33,7 +33,15 @@ page.open(address, function (status) {
         console.log('scrolling', window.document.body.scrollTop);
         window.document.body.scrollTop = window.document.body.scrollTop + 1024;
       });
-    }, 250);
+    }, 255);
+
+    // scroll back to top for consistency, right in time (sometimes)
+    // logo's dissapear when scrolling down
+    window.setTimeout(function() {
+      page.evaluate(function() {
+        window.document.body.scrollTop = 0;
+      });
+    }, timeout - 5);
 
     // after the timeout, save the screenbuffer to file
     window.setTimeout(function() {

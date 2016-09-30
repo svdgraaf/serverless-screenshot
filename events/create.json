@@ -1,5 +1,8 @@
 {
   "query": {
-    "url": "http://google.com/"
+    "url": "https://www.indebuurt.nl/delft/delftenaren/delftenaar-van-de-week/dj-woody-s-gravemade-het-is-megaziek-om-iedereen-te-zien-dansen-op-je-muziek~12401/"
+  },
+  "stageVariables": {
+    "screenshotTimeout": 3000
   }
 }
