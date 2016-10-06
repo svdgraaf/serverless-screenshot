@@ -6,7 +6,7 @@
     "dotenv": "^2.0.0",
     "serverless": "^1.0.0-rc.1",
     "serverless-plugin-stack-outputs": "^1.3.2",
-    "serverless-plugin-stage-variables": "^1.5.5",
+    "serverless-plugin-stage-variables": "^1.6.6",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
