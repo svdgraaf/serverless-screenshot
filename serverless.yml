@@ -43,6 +43,7 @@ functions:
           method: post
           # Marking the function as private will require an api-key
           private: true
+          integration: lambda
 
           # The url parameter is mandatory
           request:
@@ -63,6 +64,7 @@ functions:
           path: screenshots
           method: get
           private: true
+          integration: lambda
           request:
             parameters:
               querystrings:
