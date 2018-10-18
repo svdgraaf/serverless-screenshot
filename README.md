@@ -34,7 +34,13 @@ npm install
 ```
 
 # Installation
-This project uses Serverless for setting up the service. Check the `serverless.yml` for the bucket name, and change it to whatever you want to call it. You can then deploy the stack with:
+This project uses [Serverless](https://www.npmjs.com/package/serverless) for setting up the service. We can use npm to globally install the latest [Serverless](https://www.npmjs.com/package/serverless) version: 
+
+```bash
+npm install -g serverless
+```
+
+Now, check the `serverless.yml` for the bucket name, and change it to whatever you want to call it. You can then deploy the stack with:
 
 ```bash
 sls deploy -s dev
